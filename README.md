@@ -29,6 +29,10 @@ Este proyecto facilita la conversión de documentos de Word a PDF de manera senc
 - Spring Boot
 - [Lista de dependencias](#librerías-utilizadas)
 
+## Webs:
+- https://www.e-iceblue.com/Download/doc-for-java-free.html
+- https://products.aspose.cloud/words/es/nodejs/conversion/word-to-pdf/
+
 ## Instalación
 
 1.  **Clona el repositorio:**
