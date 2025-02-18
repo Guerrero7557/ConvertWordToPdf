@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertir Word a PDF</title>
+    <style>
+        body {
+    font-family: 'Roboto', sans-serif; /* Fuente de Google Fonts */
+    background-color: #f4f4f4; /* Fondo gris claro */
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+    min-height: 100vh; /* Asegura que el cuerpo ocupa toda la altura de la pantalla */
+    margin: 0; /* Elimina márgenes predeterminados */
+    }
+
+    .container {
+        background-color: #fff; /* Fondo blanco para el contenedor */
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+        width: 400px; /* Ancho fijo del contenedor */
+        text-align: center; /* Centra el texto dentro del contenedor */
+    }
+
+    h1 {
+        color: #333; /* Color de texto oscuro */
+        margin-bottom: 20px;
+    }
+
+    .input-group {
+        margin-bottom: 20px;
+        text-align: left; /* Alinea las etiquetas a la izquierda */
+    }
+
+    label {
+        display: block; /* Etiquetas en bloque */
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    select, input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Incluye el padding y el borde en el ancho */
+    }
+
+    .convert-button {
+        background-color: #007bff; /* Azul */
+        color: #fff;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease; /* Transición suave del color de fondo */
+    }
+
+    .convert-button:hover {
+        background-color: #0056b3; /* Azul más oscuro al pasar el mouse */
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3; /* Gris claro */
+        border-top: 4px solid #3498db; /* Azul */
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 2s linear infinite; /* Animación de rotación */
+        margin: 0 auto 10px; /* Centra el spinner */
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .error-message {
+        color: red;
+        margin-top: 10px;
+    }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Conversión de Word a PDF</h1>
+
+        <div class="input-group">
+            <label for="servicio">Proveedor:</label>
+            <select id="servicio">
+                <option value="aspose">Aspose</option>
+                <option value="spire" selected>Spire</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="wordFile">Archivo Word:</label>
+            <input type="file" id="wordFile" accept=".doc,.docx">
+        </div>
+
+        <button onclick="uploadFile()" class="convert-button">Convertir a PDF</button>
+
+        <div id="loading-indicator" style="display:none;">
+            <div class="spinner"></div>
+            <p>Convirtiendo...</p>
+        </div>
+
+        <div id="error-message" class="error-message" style="display:none;"></div>
+
+    </div>
+
+    <script>
+
+const select = document.getElementById('servicio');
+let service = select.value; // Usa let para poder reasignar el valor
+
+select.addEventListener('change', function() {
+    service = this.value; // Asigna directamente this.value a service
+    console.log('Valor seleccionado:', service); // Usa service directamente
+
+    if (service === 'aspose') {
+        console.log('Se seleccionó Aspose');
+    } else if (service === 'spire') {
+        console.log('Se seleccionó Spire');
+    }
+});
+
+function uploadFile() {
+
+    // Mostrar el indicador de carga
+    document.getElementById('loading-indicator').style.display = 'block';
+    document.getElementById('error-message').style.display = 'none';
+    const fileInput = document.getElementById('wordFile');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("Por favor selecciona un archivo de Word.");
+        document.getElementById('loading-indicator').style.display = 'none';
+        return;
+    }
+
+    if (service === null) {  // Verifica si service tiene un valor antes de continuar
+        alert("Por favor selecciona un proveedor (Aspose o Spire).");
+        document.getElementById('loading-indicator').style.display = 'none';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const url = `http://localhost:8095/convertFilePdf/convert/${service}-word-to-pdf`; // Template literal para la URL
+    console.log("URL:", url); // Imprime la URL para depuración
+
+    fetch(url, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(err => { throw new Error(err) }); // Obtén el mensaje de error del servidor
+        }
+        return response.blob();
+        document.getElementById('loading-indicator').style.display = 'none';
+    })
+    .then(blob => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "converted.pdf";
+        link.click();
+        document.getElementById('loading-indicator').style.display = 'none';
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Ocurrió un error durante la conversión: " + error.message);
+        document.getElementById('error-message').textContent = error.message; // Muestra el mensaje de error
+        document.getElementById('error-message').style.display = 'block';
+    });
+}
+    </script>
+</body>
+</html>
